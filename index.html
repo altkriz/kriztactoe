@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>KrizTacToe Unbeatable with AI</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;800&display=swap" rel="stylesheet">
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Poppins', sans-serif;
+      background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
+      color: #ffffff;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-height: 100vh;
+      padding: 20px;
+    }
+
+    h1 {
+      margin-top: 20px;
+      font-size: 2.5em;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      text-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
+    }
+
+    p {
+      color: #b0c4de;
+      margin-bottom: 20px;
+      font-size: 0.9em;
+    }
+
+    /* Glassmorphism Scoreboard */
+    .scoreboard {
+      display: flex;
+      justify-content: center;
+      gap: 15px;
+      margin-bottom: 30px;
+      background: rgba(255, 255, 255, 0.05);
+      padding: 15px 30px;
+      border-radius: 20px;
+      backdrop-filter: blur(10px);
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .score-box {
+      font-size: 1.2em;
+      font-weight: 600;
+      text-align: center;
+      min-width: 90px;
+    }
+
+    .score-box span {
+      display: block;
+      font-size: 1.5em;
+      font-weight: 800;
+      margin-top: 5px;
+    }
+
+    .score-human {
+      color: #00E5FF;
+      text-shadow: 0 0 10px rgba(0, 229, 255, 0.5);
+    }
+
+    .score-tie {
+      color: #aaaaaa;
+    }
+
+    .score-ai {
+      color: #FF007F;
+      text-shadow: 0 0 10px rgba(255, 0, 127, 0.5);
+    }
+
+    /* The Board */
+    #board {
+      display: grid;
+      grid-template-columns: repeat(3, 100px);
+      grid-template-rows: repeat(3, 100px);
+      gap: 10px;
+      background: rgba(255, 255, 255, 0.05);
+      padding: 15px;
+      border-radius: 20px;
+      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .cell {
+      width: 100px;
+      height: 100px;
+      background: rgba(255, 255, 255, 0.05);
+      border-radius: 15px;
+      font-size: 4em;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      box-shadow: inset 0 4px 6px rgba(0, 0, 0, 0.3);
+    }
+
+    .cell:hover {
+      background: rgba(255, 255, 255, 0.15);
+      transform: translateY(-3px);
+      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+    }
+
+    /* X and O Styles & Animations */
+    .cell span {
+      animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+    }
+
+    @keyframes popIn {
+      0% {
+        transform: scale(0.3);
+        opacity: 0;
+      }
+
+      100% {
+        transform: scale(1);
+        opacity: 1;
+      }
+    }
+
+    .x-mark {
+      color: #00E5FF;
+      text-shadow: 0 0 15px rgba(0, 229, 255, 0.8);
+    }
+
+    .o-mark {
+      color: #FF007F;
+      text-shadow: 0 0 15px rgba(255, 0, 127, 0.8);
+    }
+
+    /* Winning Animation */
+    .win-pulse {
+      animation: winGlow 1s infinite alternate;
+      background: rgba(255, 255, 255, 0.2);
+    }
+
+    @keyframes winGlow {
+      0% {
+        transform: scale(1);
+        box-shadow: 0 0 10px rgba(255, 255, 255, 0.2);
+      }
+
+      100% {
+        transform: scale(1.05);
+        box-shadow: 0 0 25px rgba(255, 255, 255, 0.6);
+      }
+    }
+
+    #status {
+      font-size: 1.5em;
+      margin-top: 25px;
+      font-weight: 600;
+      letter-spacing: 1px;
+      min-height: 35px;
+    }
+
+    /* Buttons */
+    .controls {
+      margin-top: 20px;
+      display: flex;
+      gap: 15px;
+    }
+
+    button {
+      padding: 12px 25px;
+      font-size: 1em;
+      font-family: 'Poppins', sans-serif;
+      font-weight: 600;
+      cursor: pointer;
+      background: linear-gradient(90deg, #4b6cb7 0%, #182848 100%);
+      color: white;
+      border: none;
+      border-radius: 30px;
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+    }
+
+    button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.5);
+      filter: brightness(1.2);
+    }
+
+    button.reset-btn {
+      background: linear-gradient(90deg, #cb2d3e 0%, #ef473a 100%);
+    }
+  </style>
+</head>
+
+<body>
+
+  <h1>Kriz-Tac-Toe</h1>
+  <p>Powered by the unbreakable Minimax Algorithm</p>
+
+  <div class="scoreboard">
+    <div class="score-box score-human">You (X)<span id="scoreHuman">0</span></div>
+    <div class="score-box score-tie">Ties<span id="scoreTie">0</span></div>
+    <div class="score-box score-ai">AI (O)<span id="scoreAi">0</span></div>
+  </div>
+
+  <div id="board"></div>
+  <div id="status">Your turn! (You are X)</div>
+
+  <div class="controls">
+    <button onclick="resetBoard()">Next Round</button>
+    <button class="reset-btn" onclick="resetScores()">Reset Scores</button>
+  </div>
+
+  <script>
+    let board =["", "", "", "", "", "", "", "", ""];
+        let human = "X";
+        let ai = "O";
+        let gameActive = true;
+        
+        let scores = { human: 0, ai: 0, tie: 0 };
+
+        function createBoard() {
+            const boardElement = document.getElementById("board");
+            boardElement.innerHTML = "";
+            for (let i = 0; i < 9; i++) {
+                let cell = document.createElement("div");
+                cell.classList.add("cell");
+                cell.id = "cell-" + i;
+                
+                if (board[i] !== "") {
+                    let span = document.createElement("span");
+                    span.innerText = board[i];
+                    if (board[i] === human) span.classList.add("x-mark");
+                    if (board[i] === ai) span.classList.add("o-mark");
+                    cell.appendChild(span);
+                }
+                
+                cell.onclick = function() { humanMove(i); };
+                boardElement.appendChild(cell);
+            }
+        }
+
+        function humanMove(index) {
+            if (board[index] === "" && gameActive) {
+                board[index] = human;
+                createBoard();
+                
+                let result = checkWinner(board);
+                if (result !== null) {
+                    handleGameOver(result);
+                    return;
+                }
+
+                document.getElementById("status").innerText = "AI is calculating...";
+                gameActive = false; // Prevent clicking while AI thinks
+                
+                // Delay AI move slightly for effect
+                setTimeout(aiMove, 400); 
+            }
+        }
+
+        function aiMove() {
+            let bestScore = -Infinity;
+            let move = -1;
+
+            for (let i = 0; i < 9; i++) {
+                if (board[i] === "") {
+                    board[i] = ai;
+                    let score = minimax(board, 0, false);
+                    board[i] = "";
+                    
+                    if (score > bestScore) {
+                        bestScore = score;
+                        move = i;
+                    }
+                }
+            }
+
+            board[move] = ai;
+            createBoard();
+            
+            let result = checkWinner(board);
+            if (result !== null) {
+                handleGameOver(result);
+            } else {
+                document.getElementById("status").innerText = "Your turn! (You are X)";
+                gameActive = true;
+            }
+        }
+
+        function minimax(currBoard, depth, isMaximizing) {
+            let result = checkWinner(currBoard);
+            
+            if (result === ai) return 10 - depth;
+            if (result === human) return depth - 10;
+            if (result === "tie") return 0;
+
+            if (isMaximizing) {
+                let bestScore = -Infinity;
+                for (let i = 0; i < 9; i++) {
+                    if (currBoard[i] === "") {
+                        currBoard[i] = ai;
+                        let score = minimax(currBoard, depth + 1, false);
+                        currBoard[i] = "";
+                        bestScore = Math.max(score, bestScore);
+                    }
+                }
+                return bestScore;
+            } else {
+                let bestScore = Infinity;
+                for (let i = 0; i < 9; i++) {
+                    if (currBoard[i] === "") {
+                        currBoard[i] = human;
+                        let score = minimax(currBoard, depth + 1, true);
+                        currBoard[i] = "";
+                        bestScore = Math.min(score, bestScore);
+                    }
+                }
+                return bestScore;
+            }
+        }
+
+        function checkWinner(b) {
+            const combos = [
+                [0, 1, 2],[3, 4, 5], [6, 7, 8], 
+                [0, 3, 6],[1, 4, 7], [2, 5, 8],[0, 4, 8], [2, 4, 6]             
+            ];
+
+            for (let i = 0; i < combos.length; i++) {
+                let [x, y, z] = combos[i];
+                if (b[x] !== "" && b[x] === b[y] && b[x] === b[z]) {
+                    return b[x]; 
+                }
+            }
+
+            let isTie = true;
+            for (let i = 0; i < 9; i++) {
+                if (b[i] === "") isTie = false;
+            }
+            if (isTie) return "tie";
+
+            return null; 
+        }
+
+        // Helper to find WHICH row won so we can highlight it
+        function getWinningCombo(b) {
+            const combos = [[0, 1, 2], [3, 4, 5], [6, 7, 8],[0, 3, 6], [1, 4, 7], [2, 5, 8], 
+                [0, 4, 8], [2, 4, 6]             
+            ];
+            for (let i = 0; i < combos.length; i++) {
+                let[x, y, z] = combos[i];
+                if (b[x] !== "" && b[x] === b[y] && b[x] === b[z]) {
+                    return combos[i];
+                }
+            }
+            return null;
+        }
+
+        function handleGameOver(result) {
+            gameActive = false;
+            
+            if (result === human) {
+                document.getElementById("status").innerText = "You Win! (Wait, mathematically impossible!)";
+                document.getElementById("status").style.color = "#00E5FF";
+                scores.human++;
+                document.getElementById("scoreHuman").innerText = scores.human;
+                highlightWinningCells();
+            } else if (result === ai) {
+                document.getElementById("status").innerText = "AI Wins! Nice try.";
+                document.getElementById("status").style.color = "#FF007F";
+                scores.ai++;
+                document.getElementById("scoreAi").innerText = scores.ai;
+                highlightWinningCells();
+            } else if (result === "tie") {
+                document.getElementById("status").innerText = "It's a Tie! Perfect play.";
+                document.getElementById("status").style.color = "#aaaaaa";
+                scores.tie++;
+                document.getElementById("scoreTie").innerText = scores.tie;
+            }
+        }
+
+        function highlightWinningCells() {
+            let combo = getWinningCombo(board);
+            if (combo) {
+                for (let i = 0; i < 3; i++) {
+                    document.getElementById("cell-" + combo[i]).classList.add("win-pulse");
+                }
+            }
+        }
+
+        function resetBoard() {
+            board =["", "", "", "", "", "", "", "", ""];
+            gameActive = true;
+            document.getElementById("status").innerText = "Your turn! (You are X)";
+            document.getElementById("status").style.color = "#ffffff";
+            createBoard();
+        }
+
+        function resetScores() {
+            scores = { human: 0, ai: 0, tie: 0 };
+            document.getElementById("scoreHuman").innerText = "0";
+            document.getElementById("scoreAi").innerText = "0";
+            document.getElementById("scoreTie").innerText = "0";
+            resetBoard();
+        }
+
+        // Start
+        createBoard();
+  </script>
+</body>
+
+</html>
